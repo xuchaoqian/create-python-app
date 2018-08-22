@@ -3,19 +3,21 @@ from create_python_app.path_utils import *
 _file_name= "Makefile"
 def _get_file_content(app_name):
     return f"""\
+.DEFAULT_GOAL := init
+
 prj-dir := $(shell pwd)
 src-dir := $(prj-dir)
 venv-dir := $(prj-dir)/venv
 python-sys := python3
 python-venv := $(venv-dir)/bin/python
 pip-venv := $(venv-dir)/bin/pip
+jupyter-venv := $(venv-dir)/bin/jupyter
+ipython-venv := $(venv-dir)/bin/ipython
 pytest-sys := pytest
 
 define get_site_dir
 $(shell $(python-venv) -c "from distutils.sysconfig import get_python_lib; print(get_python_lib())")
 endef
-
-init: create-env upgrade-pip create-dirs install-deps set-path
 
 create-env:
 	$(python-sys) -m venv $(venv-dir)
@@ -32,6 +34,18 @@ install-deps:
 set-path:
 	echo $(src-dir) > $(call get_site_dir)/my.pth
 
+install-ipykernel:
+	$(pip-venv) install ipykernel
+	$(ipython-venv) kernel install --user --name={app_name}
+
+uninstall-ipykernel:
+	$(jupyter-venv) kernelspec uninstall -f {app_name} || true
+
+rm-temp-files:
+	rm -rf $(venv-dir) $(prj-dir)/build $(prj-dir)/dist $(prj-dir)/{app_name}.egg-info
+
+init: create-env upgrade-pip create-dirs install-deps set-path
+
 run:
 	$(python-venv) $(filter-out $@, $(MAKECMDGOALS))
 
@@ -41,8 +55,10 @@ test:
 pkg:
 	$(python-sys) setup.py sdist bdist_wheel
 
-clean:
-	rm -rf $(venv-dir) $(prj-dir)/build $(prj-dir)/dist $(prj-dir)/{app_name}.egg-info
+nb: install-ipykernel
+	$(jupyter-venv) notebook
+
+clean: uninstall-ipykernel rm-temp-files
 """
 
 def create_makefile_file(base_dir, **kwargs):
