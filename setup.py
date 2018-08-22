@@ -5,7 +5,7 @@ with open("README.md", "r") as f:
     
 setuptools.setup(
     name="create_python_app",
-    version="0.3.2",
+    version="0.3.3",
     author="Xu Chaoqian",
     author_email="chaoranxu@gmail.com",
     description="A tool for creating python apps.",
