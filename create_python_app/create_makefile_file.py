@@ -20,9 +20,10 @@ $(shell $(python-venv) -c "from distutils.sysconfig import get_python_lib; print
 endef
 
 create-env:
-	$(python-sys) -m venv $(venv-dir)
+	$(python-sys) -m venv --without-pip $(venv-dir)
 
-upgrade-pip:
+ensure-pip:
+	curl https://bootstrap.pypa.io/get-pip.py | $(python-venv)
 	$(pip-venv) install --upgrade pip
 
 create-dirs:
@@ -44,7 +45,7 @@ uninstall-ipykernel:
 rm-temp-files:
 	rm -rf $(venv-dir) $(prj-dir)/build $(prj-dir)/dist $(prj-dir)/{app_name}.egg-info
 
-init: create-env upgrade-pip create-dirs install-deps set-path
+init: create-env ensure-pip create-dirs install-deps set-path
 
 run:
 	$(python-venv) $(filter-out $@, $(MAKECMDGOALS))
